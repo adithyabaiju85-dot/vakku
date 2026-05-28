@@ -1,0 +1,35 @@
+
+> vakku@0.1.0 dev
+> vite
+
+
+  VITE v5.4.21  ready in 518 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: use --host to expose
+1:18:15 pm [vite] hmr update /src/context/StateContext.tsx
+1:18:16 pm [vite] hmr invalidate /src/context/StateContext.tsx Could not Fast Refresh ("useAppState" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+1:18:16 pm [vite] page reload src/context/StateContext.tsx
+1:18:31 pm [vite] hmr update /src/App.tsx
+1:18:31 pm [vite] Internal server error: Failed to resolve import "./app/my-space" from "src/App.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/adi05/Documents/vakku/src/App.tsx:13:24
+  25 |  import TrendingPage from "./app/trending/page";
+  26 |  import PulsePage from "./app/pulse/page";
+  27 |  import MySpacePage from "./app/my-space";
+     |                           ^
+  28 |  export default function App() {
+  29 |    _s();
+      at TransformPluginContext._formatError (file:///home/adi05/Documents/vakku/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41)
+      at TransformPluginContext.error (file:///home/adi05/Documents/vakku/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16)
+      at normalizeUrl (file:///home/adi05/Documents/vakku/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///home/adi05/Documents/vakku/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39
+      at async Promise.all (index 12)
+      at async TransformPluginContext.transform (file:///home/adi05/Documents/vakku/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7)
+      at async PluginContainer.transform (file:///home/adi05/Documents/vakku/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18)
+      at async loadAndTransform (file:///home/adi05/Documents/vakku/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27)
+      at async viteTransformMiddleware (file:///home/adi05/Documents/vakku/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:62106:24)
+1:18:38 pm [vite] page reload src/App.tsx
+1:49:26 pm [vite] page reload tailwind.config.ts
+1:49:28 pm [vite] hmr update /src/app/globals.css

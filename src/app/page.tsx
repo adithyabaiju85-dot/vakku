@@ -64,7 +64,7 @@ export default function FeedPage() {
 
   // Inactivity Auto-Rotation Logic (15 seconds)
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout>;
 
     const resetTimer = () => {
       setIsInactive(false);
@@ -94,7 +94,7 @@ export default function FeedPage() {
 
   // When inactive, rotate every 5 seconds
   useEffect(() => {
-    let rotationInterval: NodeJS.Timeout;
+    let rotationInterval: ReturnType<typeof setInterval>;
     if (isInactive && sortedPosts.length > 2) {
       rotationInterval = setInterval(() => {
         setVisibleStartIndex((prev) => (prev + 2) % sortedPosts.length);

@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #F5F3FF;
-  --foreground: #1A1A1A;
+  --background: #0B0C10;
+  --foreground: #E0E6ED;
 }
 
 body {
@@ -17,13 +17,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Disable gradients and shadows per project specifications */
-* {
-  box-shadow: none !important;
-  text-shadow: none !important;
-  background-image: none !important;
-}
-
 /* Restrict all bold elements and utility classes to font-weight 500 */
 h1, h2, h3, h4, h5, h6, b, strong, th,
 .font-semibold, .font-bold, .font-medium {
@@ -32,7 +25,7 @@ h1, h2, h3, h4, h5, h6, b, strong, th,
 
 /* Smooth active micro-interactions */
 button, a, input, textarea, select, svg {
-  transition: all 0.15s ease-in-out;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Utility to hide scrollbars for horizontal lists */
@@ -46,16 +39,33 @@ button, a, input, textarea, select, svg {
 
 /* Fade in for page transitions */
 .fade-in {
-  animation: fadeIn 0.25s ease-out forwards;
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(2px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.glass-card {
+  background: rgba(31, 40, 51, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.glass-card:hover {
+  border-color: rgba(0, 229, 255, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(0, 229, 255, 0.1);
+}
+
+.neon-text {
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
 }

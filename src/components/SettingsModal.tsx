@@ -5,6 +5,7 @@ import { useAppState } from "@/context/StateContext";
 import { IconX, IconRefresh, IconCamera, IconVolume, IconVolumeOff, IconTrashX } from "@tabler/icons-react";
 import { playClickSound } from "@/utils/audio";
 import { getInitials, getColorPairForName } from "@/utils/identity";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function SettingsModal() {
   const { 
@@ -16,12 +17,25 @@ export default function SettingsModal() {
     soundEnabled, 
     setSoundEnabled,
     setUserAvatar,
-    clearData
+    clearData,
+    isDeveloper,
+    logout
   } = useAppState();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [liveTyping, setLiveTyping] = React.useState<{author: string, text: string, ts: number} | null>(null);
 
-  if (!isSettingsOpen) return null;
+  React.useEffect(() => {
+    if (!isDeveloper || !isSettingsOpen) return;
+    
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "vaakku_typing_event" && e.newValue) {
+        setLiveTyping(JSON.parse(e.newValue));
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [isDeveloper, isSettingsOpen]);
 
   const handleClose = () => {
     playClickSound();
@@ -63,13 +77,30 @@ export default function SettingsModal() {
     }
   };
 
+  const handleLogout = () => {
+    playClickSound();
+    logout();
+    setIsSettingsOpen(false);
+  };
+
   const avatarStyle = getColorPairForName(identity || "anonymous");
   const initials = getInitials(identity || "anonymous");
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-5 select-none animate-fade-in backdrop-blur-md">
-      <div className="w-full max-w-[420px] bg-[#000000] border border-white/10 rounded-[32px] p-8 flex flex-col gap-6 relative shadow-[0_0_50px_rgba(0,229,255,0.1)]">
-        
+    <AnimatePresence>
+      {isSettingsOpen && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-5 select-none backdrop-blur-md">
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="w-full max-w-[420px] bg-[#000000] border border-white/10 rounded-[32px] p-8 flex flex-col gap-6 relative shadow-[0_0_50px_rgba(0,229,255,0.1)]">
+            
         {/* Header */}
         <div className="flex items-center justify-between">
           <span className="text-[20px] font-bold tracking-tight text-white flex items-center gap-2">
@@ -113,12 +144,14 @@ export default function SettingsModal() {
 
               <div className="flex flex-col gap-1 flex-1 min-w-0">
                 <span className="text-[14px] font-bold text-white truncate">{identity}</span>
-                <button 
-                  onClick={handleShuffle}
-                  className="text-[11px] font-bold text-primary hover:text-white uppercase tracking-[1px] flex items-center gap-1 self-start transition-colors"
-                >
-                  <IconRefresh size={12} /> Shuffle Handle
-                </button>
+                {isDeveloper && (
+                  <button 
+                    onClick={handleShuffle}
+                    className="text-[11px] font-bold text-primary hover:text-white uppercase tracking-[1px] flex items-center gap-1 self-start transition-colors"
+                  >
+                    <IconRefresh size={12} /> Shuffle Handle
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -138,12 +171,46 @@ export default function SettingsModal() {
                 <IconVolumeOff size={20} className="text-neutral-600" />
               )}
             </button>
+            
+            {soundEnabled && isDeveloper && (
+              <div className="flex gap-2">
+                {['default', 'cyber', 'organic'].map((theme) => {
+                  const currentTheme = localStorage.getItem("vaakku_sound_theme_v3") || "default";
+                  return (
+                    <button
+                      key={theme}
+                      onClick={() => {
+                        localStorage.setItem("vaakku_sound_theme_v3", theme);
+                        playClickSound();
+                        // Force re-render trick for simple un-tracked state
+                        setIsSettingsOpen(false);
+                        setTimeout(() => setIsSettingsOpen(true), 0);
+                      }}
+                      className={`flex-1 py-2 rounded border text-[11px] font-bold uppercase transition-all ${
+                        currentTheme === theme 
+                          ? "bg-primary text-black border-primary" 
+                          : "bg-white/5 text-neutral-400 border-white/10 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      {theme}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Danger Zone */}
           <div className="flex flex-col gap-3 mt-4">
-            <span className="text-[10px] uppercase tracking-[2px] font-bold text-red-500/80">Danger Zone</span>
+            <span className="text-[10px] uppercase tracking-[2px] font-bold text-red-500/80">Account & Danger Zone</span>
             
+            <button 
+              onClick={handleLogout}
+              className="flex items-center justify-between w-full p-4 bg-white/5 border border-white/10 text-white rounded-card hover:bg-white/10 transition-colors active:scale-[0.98]"
+            >
+              <span className="text-[13px] font-bold uppercase tracking-[1px]">Logout (Switch Profile)</span>
+            </button>
+
             <button 
               onClick={handleNukeData}
               className="flex items-center justify-between w-full p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-card hover:bg-red-500/20 transition-colors active:scale-[0.98]"
@@ -157,7 +224,9 @@ export default function SettingsModal() {
           </div>
 
         </div>
-      </div>
-    </div>
+        </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

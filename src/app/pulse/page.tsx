@@ -27,16 +27,13 @@ export default function PulsePage() {
 
   const totalVoices = posts.length || 1;
 
-  // Calculate percentages (smoothed with base values to ensure nice visual graphs even with 0 custom posts)
-  const baseCounts = { frustrated: 58, hopeful: 34, confused: 26, proud: 41, serious: 49 };
-  
+  // Calculate percentages based ONLY on actual user broadcasts (no fake base data)
   const formattedStats = (Object.keys(stats) as Array<keyof typeof stats>).map((key) => {
     const activeCount = stats[key].count;
-    const totalRepresentedCount = baseCounts[key] + activeCount;
     return {
       key,
       label: key,
-      representedCount: totalRepresentedCount,
+      representedCount: activeCount,
       activeCount,
       reactions: stats[key].reactions,
       comments: stats[key].comments,

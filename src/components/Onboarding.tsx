@@ -5,10 +5,11 @@ import { useAppState } from "@/context/StateContext";
 import { getInitials, getColorPairForName } from "@/utils/identity";
 import { IconRefresh, IconArrowRight, IconShieldLock, IconCamera, IconUpload } from "@tabler/icons-react";
 import { playClickSound } from "@/utils/audio";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Onboarding() {
-  const { identity, shuffleIdentity, setOnboarded } = useAppState();
-  const [step, setStep] = useState<1 | 2>(1);
+  const { identity, shuffleIdentity, setOnboarded, profiles } = useAppState();
+  const [step, setStep] = useState<0 | 1 | 2>(0);
   const [tempName, setTempName] = useState(identity);
   const [tempAvatar, setTempAvatar] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -52,16 +53,26 @@ export default function Onboarding() {
     }
   };
 
+  const isProfileFound = tempName.trim() && profiles[tempName.trim()];
+  const displayAvatar = tempAvatar || (isProfileFound ? isProfileFound.avatar : null);
+
   const avatarStyle = getColorPairForName(tempName || "anonymous");
   const initials = getInitials(tempName || "anonymous");
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#000000] flex items-center justify-center p-5 select-none animate-fade-in overflow-y-auto">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 z-50 bg-[#000000] flex items-center justify-center p-5 select-none overflow-y-auto">
       {/* Decorative Orbs */}
       <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary/10 blur-[150px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
       
-      <div className="w-full max-w-[420px] glass-card border border-white/10 rounded-[32px] p-8 flex flex-col gap-8 relative z-10 shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
+      <motion.div 
+        initial={{ y: 20, opacity: 0, scale: 0.95 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 25 }}
+        className="w-full max-w-[420px] glass-card border border-white/10 rounded-[32px] p-8 flex flex-col gap-8 relative z-10 shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
         
         {/* Header */}
         <div className="flex flex-col items-center justify-center gap-1">
@@ -69,11 +80,33 @@ export default function Onboarding() {
             vaakku<span className="text-primary neon-text">.</span>
           </span>
           <span className="text-[11px] uppercase tracking-[2px] font-bold text-neutral-500">
-            {step === 1 ? "Identity Setup" : "Security Protocol"}
+            {step === 0 ? "Initialization" : step === 1 ? "Identity Setup" : "Security Protocol"}
           </span>
         </div>
 
-        {step === 1 ? (
+        {step === 0 ? (
+          /* PHASE 0: WELCOME & DEVELOPER CREDIT */
+          <div className="flex flex-col gap-6 fade-in items-center text-center">
+            <h2 className="text-[20px] font-bold text-white tracking-tight">The Unfiltered Voice.</h2>
+            <p className="text-[14px] text-neutral-400 leading-relaxed">
+              Vaakku is a high-performance, zero-persistence opinion engine. Speak your mind without the baggage of permanent profiles.
+            </p>
+            <div className="w-full p-4 bg-primary/10 border border-primary/20 rounded-xl mt-2">
+              <span className="text-[11px] uppercase tracking-[2px] font-bold text-primary">Engineered By</span>
+              <p className="text-[16px] font-bold text-white mt-1">eplupza</p>
+            </div>
+            
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => { playClickSound(); setStep(1); }}
+              className="w-full py-4 mt-2 bg-white text-black hover:bg-primary shadow-[0_0_15px_rgba(255,255,255,0.3)] rounded-pill transition-all font-bold text-[14px] uppercase tracking-[1px] flex items-center justify-center gap-2 active:scale-[0.98]"
+            >
+              <span>Begin Setup</span>
+              <IconArrowRight size={18} stroke={2.5} />
+            </motion.button>
+          </div>
+        ) : step === 1 ? (
           /* PHASE 1: LOGIN / AVATAR SETUP */
           <div className="flex flex-col gap-7 fade-in">
             
@@ -86,12 +119,12 @@ export default function Onboarding() {
                 <div
                   className="w-24 h-24 rounded-full flex items-center justify-center text-[32px] font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)] border-2 border-white/10 overflow-hidden bg-cover bg-center transition-all group-hover:border-primary/50 group-hover:shadow-[0_0_20px_rgba(0,229,255,0.2)]"
                   style={{ 
-                    backgroundColor: tempAvatar ? 'transparent' : avatarStyle.bg, 
+                    backgroundColor: displayAvatar ? 'transparent' : avatarStyle.bg, 
                     color: avatarStyle.text,
-                    backgroundImage: tempAvatar ? `url(${tempAvatar})` : 'none'
+                    backgroundImage: displayAvatar ? `url(${displayAvatar})` : 'none'
                   }}
                 >
-                  {!tempAvatar && initials}
+                  {!displayAvatar && initials}
                 </div>
                 
                 {/* Upload Overlay */}
@@ -142,8 +175,21 @@ export default function Onboarding() {
               </div>
             </div>
 
+            {/* Profile Status Indicator */}
+            {isProfileFound && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                className="text-[12px] font-bold text-primary flex items-center justify-center gap-1 -mt-2 bg-primary/10 py-1.5 rounded-full border border-primary/20"
+              >
+                <IconShieldLock size={14} /> Profile Identified.
+              </motion.div>
+            )}
+
             {/* Continue Button */}
-            <button
+            <motion.button
+              whileHover={{ scale: tempName.trim() ? 1.02 : 1 }}
+              whileTap={{ scale: tempName.trim() ? 0.98 : 1 }}
               onClick={handleContinue}
               disabled={!tempName.trim()}
               className={`w-full py-4 rounded-pill text-[14px] font-bold uppercase tracking-[1px] flex items-center justify-center gap-2 transition-all mt-2 ${
@@ -152,9 +198,9 @@ export default function Onboarding() {
                   : "bg-white/5 text-neutral-600 border border-white/5 cursor-not-allowed"
               }`}
             >
-              <span>Initialize Session</span>
+              <span>{isProfileFound ? "Resume Session" : "Initialize Session"}</span>
               <IconArrowRight size={18} stroke={2} />
-            </button>
+            </motion.button>
           </div>
         ) : (
           /* PHASE 2: PRIVACY WARNING */
@@ -174,25 +220,29 @@ export default function Onboarding() {
 
             <div className="flex flex-col gap-3 mt-2">
               {/* Back to Mask Button */}
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => { playClickSound(); setStep(1); }}
                 className="w-full py-3 bg-transparent border border-white/10 rounded-pill hover:bg-white/5 transition-all text-neutral-400 font-bold text-[13px] uppercase tracking-[1px] active:scale-[0.98]"
               >
                 Go Back
-              </button>
+              </motion.button>
               
               {/* Final Enter Button */}
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={handleEnterSpace}
                 className="w-full py-4 bg-white text-black hover:bg-primary shadow-[0_0_15px_rgba(255,255,255,0.3)] hover:shadow-[0_0_20px_rgba(0,229,255,0.5)] rounded-pill transition-all font-bold text-[14px] uppercase tracking-[1px] flex items-center justify-center gap-2 active:scale-[0.98]"
               >
                 <span>Acknowledge & Enter</span>
                 <IconArrowRight size={18} stroke={2.5} />
-              </button>
+              </motion.button>
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

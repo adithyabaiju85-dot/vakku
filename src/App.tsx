@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useAppState } from "@/context/StateContext";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import Onboarding from "@/components/Onboarding";
 import SettingsModal from "@/components/SettingsModal";
+import DeveloperModal from "@/components/DeveloperModal";
+import { playAnnouncementSound } from "@/utils/audio";
 
 // Page imports from our app directory structure
 import FeedPage from "./app/page";
@@ -15,6 +17,28 @@ import MySpacePage from "./app/my-space/page";
 
 export default function App() {
   const { hasOnboarded, isLoading } = useAppState();
+  const [lastAnnouncementId, setLastAnnouncementId] = useState<string | null>(null);
+
+  // Listen for announcement notifications
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "vaakku_announcement_trigger" && e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue);
+          // Only play sound if this is a new announcement (not the one we just posted)
+          if (data.id !== lastAnnouncementId) {
+            playAnnouncementSound();
+            setLastAnnouncementId(data.id);
+          }
+        } catch (err) {
+          console.error("Failed to parse announcement trigger", err);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [lastAnnouncementId]);
 
   if (isLoading) {
     return (
@@ -28,17 +52,17 @@ export default function App() {
 
   return (
     <Router>
-      {/* Settings Modal placed globally */}
+      {/* Global Modals */}
       <SettingsModal />
+      <DeveloperModal />
       
       {/* First Phase: if they haven't onboarded, enforce onboarding name selection & purpose description */}
       {!hasOnboarded && <Onboarding />}
 
       <div className="bg-brandBg text-neutral-200 antialiased min-h-screen flex flex-col font-sans relative overflow-hidden">
         
-        {/* Decorative Background Orbs */}
-        <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-primary-dark/20 blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-reaction-think/20 blur-[100px] pointer-events-none" />
+        {/* CGI Aurora Background */}
+        <div className="aurora-bg" />
         
         {/* Sticky Navbar (52px tall) */}
         {hasOnboarded && <Navbar />}

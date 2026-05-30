@@ -3,14 +3,14 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAppState } from "@/context/StateContext";
-import { IconSearch, IconSettings } from "@tabler/icons-react";
+import { IconSearch, IconSettings, IconShieldLock } from "@tabler/icons-react";
 import { playClickSound } from "@/utils/audio";
 
 export default function Navbar() {
   const location = useLocation();
   const pathname = location.pathname;
   const navigate = useNavigate();
-  const { setIsSettingsOpen } = useAppState();
+  const { setIsSettingsOpen, isDeveloper, setIsDeveloperModalOpen } = useAppState();
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -68,6 +68,17 @@ export default function Navbar() {
       {/* Right: Search & Settings */}
       <div className="flex items-center gap-3">
         
+        {/* Developer Icon */}
+        {isDeveloper && (
+          <button
+            onClick={() => { playClickSound(); setIsDeveloperModalOpen(true); }}
+            className="w-10 h-10 rounded-full border border-primary/50 flex items-center justify-center text-primary hover:bg-primary/20 transition-all shadow-[0_0_15px_rgba(0,229,255,0.4)] active:scale-[0.95]"
+            title="Developer Watcher Dashboard"
+          >
+            <IconShieldLock size={18} stroke={2} />
+          </button>
+        )}
+
         {/* Settings Icon (New) */}
         <button
           onClick={() => { playClickSound(); setIsSettingsOpen(true); }}

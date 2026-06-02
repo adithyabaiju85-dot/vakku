@@ -24,10 +24,14 @@ export default function DeveloperModal() {
   } = useAppState();
 
   const [devName, setDevName] = useState(identity);
+  const [devAlias, setDevAlias] = useState<string>(localStorage.getItem('vaakku_dev_alias') || '');
   const [liveTyping, setLiveTyping] = React.useState<{author: string, text: string, ts: number} | null>(null);
 
   React.useEffect(() => {
     if (!isDeveloper || !isDeveloperModalOpen) return;
+    // Load developer alias when modal opens
+    const storedAlias = localStorage.getItem('vaakku_dev_alias');
+    if (storedAlias) setDevAlias(storedAlias);
     
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "vaakku_typing_event" && e.newValue) {
@@ -49,6 +53,16 @@ export default function DeveloperModal() {
     playClickSound();
     if (devName.trim()) {
       setOnboarded(devName.trim());
+    }
+  };
+
+  const handleAliasChange = () => {
+    playClickSound();
+    const aliasTrim = devAlias.trim();
+    if (aliasTrim) {
+      localStorage.setItem('vaakku_dev_alias', aliasTrim);
+    } else {
+      localStorage.removeItem('vaakku_dev_alias');
     }
   };
 
@@ -101,6 +115,25 @@ export default function DeveloperModal() {
                   </button>
                 </div>
               </div>
+              {/* Alternate Developer Alias */}
+              <div className="flex flex-col gap-2 mt-2">
+                <span className="text-[10px] uppercase tracking-[2px] font-bold text-neutral-500">Developer Alias (optional)</span>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={devAlias}
+                    onChange={(e) => setDevAlias(e.target.value)}
+                    className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-[14px] text-white focus:border-primary outline-none transition-all"
+                    placeholder="Enter dev alias..."
+                  />
+                  <button
+                    onClick={handleAliasChange}
+                    className="bg-primary text-black font-bold uppercase text-[11px] px-4 rounded-lg hover:bg-white transition-colors"
+                  >
+                    Set Alias
+                  </button>
+                </div>
+              </div>
 
               {/* Active Users */}
               <div className="flex flex-col gap-2">
@@ -121,8 +154,30 @@ export default function DeveloperModal() {
                 </div>
               </div>
 
-              {/* Watcher Terminal */}
+              {/* Broadcast Input (Developer) */}
               <div className="flex flex-col gap-2">
+                <span className="text-[10px] uppercase tracking-[2px] font-bold text-neutral-500 flex items-center gap-1">
+                  <IconBroadcast size={12} /> Broadcast Message
+                </span>
+                <textarea
+                  rows={3}
+                  placeholder="Type a message to broadcast..."
+                  className="w-full bg-black/50 border border-primary/30 rounded-lg px-3 py-2 text-white focus:border-primary outline-none transition-all"
+                  value={liveTyping?.text || ''}
+                  onChange={(e) => {
+                    const newMsg = {
+                      author: devAlias.trim() || identity,
+                      text: e.target.value,
+                      ts: Date.now()
+                    };
+                    localStorage.setItem('vaakku_typing_event', JSON.stringify(newMsg));
+                    setLiveTyping(newMsg);
+                  }}
+                />
+              </div>
+
+              {/* Watcher Terminal */}
+              <div className="flex flex-col gap-2 mt-2">
                 <span className="text-[10px] uppercase tracking-[2px] font-bold text-neutral-500 flex items-center gap-1">
                   <IconActivity size={12} /> Live Keystroke Intercept
                 </span>
@@ -130,7 +185,7 @@ export default function DeveloperModal() {
                   <div className="text-primary/70 mb-2">{'>> AWAITING GLOBAL INPUT...'}</div>
                   {liveTyping ? (
                     <div className="flex flex-col gap-1">
-                      <span className="text-white font-bold">[{new Date(liveTyping.ts).toLocaleTimeString()}] {liveTyping.author} is typing:</span>
+                      <span className="text-white font-bold">[{new Date(liveTyping.ts).toLocaleTimeString()}] {liveTyping.author} says:</span>
                       <span className="text-primary/90 break-all">{liveTyping.text}</span>
                     </div>
                   ) : (
